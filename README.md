@@ -1,4 +1,4 @@
-# Класс TranslateData
+# TranslateData
 ## Класс TranslateData предназначен для перевода текстовых данных из CSV-файла с помощью API сервиса Lingvanex.
 
 ### Атрибуты
