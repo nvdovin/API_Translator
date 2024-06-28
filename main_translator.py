@@ -1,3 +1,4 @@
+import time
 import requests
 import urllib.parse
 import fake_useragent
@@ -66,7 +67,7 @@ class TranslateData:
                 print("Out from getting of array")
                 return temp_words_array
 
-            temp_words_array.append(self.df.iloc[word_row, 0].replace('"', "`"))
+            temp_words_array.append(str(self.df.iloc[word_row, 0]).replace('"', "`"))
             self.iterator += 1
             self.row_counter += 1
 
@@ -108,11 +109,21 @@ class TranslateData:
         return translated_data
     
     def main_cycle(self):
+        print(f"""
+ ___  __    _  _______  _______  __   __  _______  __   __  ___  __   __  __   __  __   __ 
+|   ||  |  | ||       ||       ||  |_|  ||   _   ||  |_|  ||   ||  |_|  ||  | |  ||  |_|  |
+|   ||   |_| ||    ___||   _   ||       ||  |_|  ||       ||   ||       ||  | |  ||       |
+|   ||       ||   |___ |  | |  ||       ||       ||       ||   ||       ||  |_|  ||       |
+|   ||  _    ||    ___||  |_|  ||       ||       | |     | |   ||       ||       ||       |
+|   || | |   ||   |    |       || ||_|| ||   _   ||   _   ||   || ||_|| ||       || ||_|| |
+|___||_|  |__||___|    |_______||_|   |_||__| |__||__| |__||___||_|   |_||_______||_|   |_|
+""")
+        time.sleep(1)
         for i in range(self.chunks_count):
             current_pack = self.translate()
             if current_pack == "PUSTOTA":
                 break
-            for item in current_pack:                
+            for item in current_pack:       
                 self.translated_text.append(item)
             print("Progress:", (len(self.translated_text) / self.total_len) * 100, "%")
         
@@ -124,4 +135,4 @@ class TranslateData:
         self.df.to_csv(f'{self.save_file()}', index=False, sep=";")
 
 
-translator = TranslateData(chunk_size=500)
+translator = TranslateData(chunk_size=50)
