@@ -34,7 +34,7 @@ class DeepTranslator:
         self.main_cycle()
 
     @staticmethod
-    def del_backshah_r_and_n(element):
+    def del_backslash_r_and_n(element):
         return re.sub(r'(?:(?<!$)[\r\n]+|(?<!$)(?<=\r\n)[\r\n]+)', '', element)
 
     def translate(self):

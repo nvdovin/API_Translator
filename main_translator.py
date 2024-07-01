@@ -1,3 +1,4 @@
+import re
 import time
 import requests
 import urllib.parse
@@ -11,13 +12,24 @@ ua = fake_useragent.UserAgent()
 
 class TranslateData:
     def __init__(self, chunk_size=100, separator="\n"):
+        print(f"""
+ ___  __    _  _______  _______  __   __  _______  __   __  ___  __   __  __   __  __   __ 
+|   ||  |  | ||       ||       ||  |_|  ||   _   ||  |_|  ||   ||  |_|  ||  | |  ||  |_|  |
+|   ||   |_| ||    ___||   _   ||       ||  |_|  ||       ||   ||       ||  | |  ||       |
+|   ||       ||   |___ |  | |  ||       ||       ||       ||   ||       ||  |_|  ||       |
+|   ||  _    ||    ___||  |_|  ||       ||       | |     | |   ||       ||       ||       |
+|   || | |   ||   |    |       || ||_|| ||   _   ||   _   ||   || ||_|| ||       || ||_|| |
+|___||_|  |__||___|    |_______||_|   |_||__| |__||__| |__||___||_|   |_||_______||_|   |_|
+""")
+        time.sleep(1)
         self.src_path = self.choose_file()
         self.df = pd.read_csv(self.src_path, sep=";")
         
+        self.total_len = self.df.count()[0]
         self.chunks_size = chunk_size
+        self.chunks_count = int(self.total_len / self.chunks_size) + 1
         self.iterator = 0
         self.row_counter = 0
-        self.total_len = self.df.count()[0]
 
         self.translated_text = []
         self.separator = separator
@@ -38,6 +50,10 @@ class TranslateData:
         else:
             return None
 
+    @staticmethod
+    def del_backslash_r_and_n(element):
+        return re.sub(r'(?:(?<!$)[\r\n]+|(?<!$)(?<=\r\n)[\r\n]+)', '', element)
+    
     def save_file(self):
         root = tk.Tk()
         root.withdraw()  # hide the root window
@@ -54,10 +70,6 @@ class TranslateData:
         else:
             return None
 
-    @property
-    def chunks_count(self):
-        return int(self.total_len / self.chunks_size) +1
-
     def get_array_from_csv(self) -> list:
         temp_words_array = []
 
@@ -66,8 +78,8 @@ class TranslateData:
             if self.iterator >= self.total_len:
                 print("Out from getting of array")
                 return temp_words_array
-
-            temp_words_array.append(str(self.df.iloc[word_row, 0]).replace('"', "`"))
+            current_word = str(self.df.iloc[word_row, 0]).replace('"', "")
+            temp_words_array.append(self.del_backslash_r_and_n(current_word))
             self.iterator += 1
             self.row_counter += 1
 
@@ -109,22 +121,12 @@ class TranslateData:
         return translated_data
     
     def main_cycle(self):
-        print(f"""
- ___  __    _  _______  _______  __   __  _______  __   __  ___  __   __  __   __  __   __ 
-|   ||  |  | ||       ||       ||  |_|  ||   _   ||  |_|  ||   ||  |_|  ||  | |  ||  |_|  |
-|   ||   |_| ||    ___||   _   ||       ||  |_|  ||       ||   ||       ||  | |  ||       |
-|   ||       ||   |___ |  | |  ||       ||       ||       ||   ||       ||  |_|  ||       |
-|   ||  _    ||    ___||  |_|  ||       ||       | |     | |   ||       ||       ||       |
-|   || | |   ||   |    |       || ||_|| ||   _   ||   _   ||   || ||_|| ||       || ||_|| |
-|___||_|  |__||___|    |_______||_|   |_||__| |__||__| |__||___||_|   |_||_______||_|   |_|
-""")
-        time.sleep(1)
         for i in range(self.chunks_count):
             current_pack = self.translate()
             if current_pack == "PUSTOTA":
                 break
             for item in current_pack:       
-                self.translated_text.append(item)
+                self.translated_text.append(self.del_backslash_r_and_n(item))
             print("Progress:", (len(self.translated_text) / self.total_len) * 100, "%")
         
         self.to_csv()
@@ -132,7 +134,7 @@ class TranslateData:
     def to_csv(self):
         # print(len(self.translated_text))
         self.df['translated'] = self.translated_text
-        self.df.to_csv(f'{self.save_file()}', index=False, sep=";")
+        self.df.to_csv(f'{self.save_file()}', index=False, sep="\n")
 
 
-translator = TranslateData(chunk_size=50)
+translator = TranslateData(chunk_size=20)
