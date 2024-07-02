@@ -11,9 +11,9 @@ ua = fake_useragent.UserAgent()
 
 
 class TranslateData:
-    def __init__(self, chunk_size=100, separator="\n"):
+    def __init__(self, chunk_size=100, separator="\n", max_words_len=100):
         print(f"""
- ___  __    _  _______  _______  __   __  _______  __   __  ___  __   __  __   __  __   __ 
+___  __    _  _______  _______  __   __  _______  __   __  ___  __   __  __   __  __   __ 
 |   ||  |  | ||       ||       ||  |_|  ||   _   ||  |_|  ||   ||  |_|  ||  | |  ||  |_|  |
 |   ||   |_| ||    ___||   _   ||       ||  |_|  ||       ||   ||       ||  | |  ||       |
 |   ||       ||   |___ |  | |  ||       ||       ||       ||   ||       ||  |_|  ||       |
@@ -24,6 +24,7 @@ class TranslateData:
         time.sleep(1)
         self.src_path = self.choose_file()
         self.df = pd.read_csv(self.src_path, sep=";")
+        self.max_words_len = max_words_len
         
         self.total_len = self.df.count()[0]
         self.chunks_size = chunk_size
@@ -70,6 +71,14 @@ class TranslateData:
         else:
             return None
 
+    @staticmethod
+    def is_too_big_endpoint(word, max_len=100):
+        if len(word) > max_len:
+            shorted_word = word[:max_len - 3]
+            return shorted_word + "..."
+        else:
+            return word
+
     def get_array_from_csv(self) -> list:
         temp_words_array = []
 
@@ -79,7 +88,7 @@ class TranslateData:
                 print("Out from getting of array")
                 return temp_words_array
             current_word = str(self.df.iloc[word_row, 0]).replace('"', "")
-            temp_words_array.append(self.del_backslash_r_and_n(current_word))
+            temp_words_array.append(self.del_backslash_r_and_n(self.is_too_big_endpoint(current_word, self.max_words_len)))
             self.iterator += 1
             self.row_counter += 1
 
@@ -137,4 +146,4 @@ class TranslateData:
         self.df.to_csv(f'{self.save_file()}', index=False, sep="\n")
 
 
-translator = TranslateData(chunk_size=20)
+translator = TranslateData(chunk_size=200)
